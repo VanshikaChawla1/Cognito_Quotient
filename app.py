@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import cv2
 import os
+from flask_cors import CORS
 
 def save_frames_as_images(video_file):
     cap = cv2.VideoCapture(video_file)
@@ -16,6 +17,13 @@ def save_frames_as_images(video_file):
         if not ret:
             break
         cv2.imwrite(f"{image_fol}/frame_{i}.jpg", frame)
+
+app=Flask(_name_)
+CORS(app, resources={r"/": {"origins": ""}})
+
+@app.route('/')
+def home():
+  return jsonify({"hello":"world"})
 
 if _name=='main_':
   app.run(debug=True)
