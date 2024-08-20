@@ -32,5 +32,12 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-if __name__ =='main_':
+app=Flask(_name_)
+CORS(app, resources={r"/": {"origins": ""}})
+
+@app.route('/')
+def home():
+  return jsonify({"hello":"world"})
+
+if _name=='main_':
   app.run(debug=True)
