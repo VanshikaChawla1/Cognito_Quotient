@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS 
 import cv2
 import os
-from flask_cors import CORS
 
 def save_frames_as_images(video_file):
     cap = cv2.VideoCapture(video_file)
