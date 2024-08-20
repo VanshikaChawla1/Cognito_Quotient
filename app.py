@@ -2,6 +2,15 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS 
 import cv2
 import os
+from roboflow import Roboflow
+
+rf = Roboflow(api_key="LF4lxbBefvMh8W3awrgv")
+
+project_f = rf.workspace().project("face-emotion-s9kw9")
+model_f = project_f.version(1).model
+
+project_d = rf.workspace().project("dress-model-gknib")
+model_d = project_d.version(1).model
 
 def save_frames_as_images(video_file):
     cap = cv2.VideoCapture(video_file)
@@ -24,6 +33,11 @@ CORS(app, resources={r"/": {"origins": ""}})
 @app.route('/')
 def home():
   return jsonify({"hello":"world"})
+
+app = Flask(__name__)
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 if _name=='main_':
   app.run(debug=True)
