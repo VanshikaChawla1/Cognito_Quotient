@@ -5,6 +5,11 @@ import os
 from roboflow import Roboflow
 import shutil
 from collections import Counter
+from AudioSenti import analyze_sentiment
+from StutterCheck import analyze_stutter
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+
 
 rf = Roboflow(api_key="LF4lxbBefvMh8W3awrgv")
 
@@ -57,6 +62,8 @@ def highest_confidence_class(predictions):
 
     return max_class
 
+
+
 def get_best(model, video):
     save_frames_as_images(video)
     image_folder = "images"
@@ -82,6 +89,17 @@ CORS(app, resources={r"/": {"origins": ""}})
 @app.route('/')
 def home():
   return jsonify({"hello":"world"})
+
+
+
+
+    emotion=get_best(model_f,vid_path)[1::]
+    dress_code=get_best(model_d,vid_path)
+    try:
+        sentiment=analyze_sentiment(audf)
+    except(sr.UnknownValueError):
+        sentiment="No speech detected"
+    stutter=analyze_stutter(audf)
 
 if __name__=='main_':
   app.run(debug=True)
