@@ -5,6 +5,14 @@ import os
 from roboflow import Roboflow
 import shutil
 from collections import Counter
+import nltk
+import speech_recognition as sr
+from nltk.sentiment import SentimentIntensityAnalyzer
+
+
+
+from nltk.sentiment import SentimentIntensityAnalyzer
+
 
 rf = Roboflow(api_key="LF4lxbBefvMh8W3awrgv")
 
@@ -57,6 +65,27 @@ def highest_confidence_class(predictions):
 
     return max_class
 
+
+
+def analyze_sentiment(audio_file):   
+    recognizer = sr.Recognizer()
+
+    with sr.AudioFile(audio_file) as source:
+        audio_data = recognizer.record(source)
+        text = recognizer.recognize_google(audio_data)
+
+        sid = SentimentIntensityAnalyzer()
+        sentiment_score = sid.polarity_scores(text)['compound']
+
+        threshold = 0.5
+
+        if sentiment_score >= threshold:
+            classification = "formal"
+        else:
+             classification = "informal"
+
+        return classification
+
 def get_best(model, video):
     save_frames_as_images(video)
     image_folder = "images"
@@ -82,6 +111,7 @@ CORS(app, resources={r"/": {"origins": ""}})
 @app.route('/')
 def home():
   return jsonify({"hello":"world"})
+
 
 if __name__=='main_':
   app.run(debug=True)
