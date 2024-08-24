@@ -8,10 +8,8 @@ from collections import Counter
 import nltk
 import speech_recognition as sr
 from nltk.sentiment import SentimentIntensityAnalyzer
+from moviepy.editor import VideoFileClip
 
-
-
-from nltk.sentiment import SentimentIntensityAnalyzer
 
 
 rf = Roboflow(api_key="LF4lxbBefvMh8W3awrgv")
@@ -120,17 +118,57 @@ def get_best(model, video):
     
     return max_class
 app = Flask(__name__)
-@app.route('/')
-def home():
-    return render_template('index.html')
-
 app=Flask(__name__)
 CORS(app, resources={r"/": {"origins": ""}})
 
 @app.route('/')
 def home():
-  return jsonify({"hello":"world"})
+    return render_template('index.html')
 
+
+# @app.route('/')
+# def home():
+#   return jsonify({"hello":"world"})
+
+@app.route('/upload',methods=['POST'])
+def upload():
+  if request.method=='POST':
+    if 'video' not in request.files:
+            return jsonify({"error": "No file part"})
+    vid = request.files['video']
+    if vid.filename == '':
+        return jsonify({"error": "a error occured"})
+
+    vid.save('temp.mp4')
+    vid_path='temp.mp4'
+
+    vidf=VideoFileClip(vid_path)
+    aud=vidf.audio
+
+    aud.write_audiofile('temp.wav')
+    audf='temp.wav'
+
+
+    emotion=get_best(model_f,vid_path)[1::]
+    dress_code=get_best(model_d,vid_path)
+    try:
+        sentiment=analyze_sentiment(audf)
+    except(sr.UnknownValueError):
+        sentiment="No speech detected"
+    stutter=analyze_stutter(audf)
+
+
+    if dress_code=="0Coat" or dress_code=="1Shirt":
+        dress="Formal"
+    else:
+        dress="Informal"
+
+  empty_folder("images")
+  
+  return jsonify({"Emotion":emotion,
+                  "Dress":dress,
+                  "Sentiment":sentiment,
+                  "Stutter":stutter})
 
 if __name__=='main_':
   app.run(debug=True)
