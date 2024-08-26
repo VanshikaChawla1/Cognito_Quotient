@@ -88,6 +88,8 @@ const startRecording = () => {
     };
 
     mediaRecorder.start();
+    const recordingStatus = document.getElementById('recordingStatus');
+    recordingStatus.innerHTML = "Recording has started...";
     console.log("Recording started");
 
 };
@@ -100,7 +102,10 @@ const stopRecording = () => {
 
         mediaRecorder.onstop = () => {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            showLoading();
             search(blob);
+            const recordingStatus = document.getElementById('recordingStatus');
+            recordingStatus.innerHTML = "";
         };
     }
 };
@@ -126,11 +131,21 @@ const search = (videoBlob) => {
     .then(response => response.json())
     .then(data => {
         console.log('Success:', data);
+        displayResults(data)
         // Handle success response
     })
     .catch((error) => {
         console.error('Error:', error);
         // Handle error response
     });
+};
+const displayResults = (data) => {
+    const resultHTML = `
+        <p><strong>Dress:</strong> ${data.Dress}</p><br>
+        <p><strong>Emotion:</strong> ${data.Emotion}</p><br>
+        <p><strong>Sentiment:</strong> ${data.Sentiment}</p><br>
+        <p><strong>Stutter:</strong> ${data.Stutter}</p>
+    `;
+    results.innerHTML = resultHTML;
 };
 getCameraSelection();

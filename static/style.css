@@ -110,30 +110,10 @@ h2{
     75%  { content: '...'; }
     100% { content: ''; }
 }
-.name {
-    color: var(--primary-outline);
+.recording-status {
+    font-size: 16px;
+    margin-top: 10px;
+    color: red;
     font-weight: bold;
-}
-.wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.recommendations{
-    list-style: none;
-    border-radius: 0.25rem;
-}
-.recommendations li{
-    text-align: center;
-    padding: 0.3rem 1rem;
-    color: white;
-}
-.recommendations li:nth-child(even){
-    background-color: var(--primary-light);
-}
-.recommendations li:nth-child(odd){
-    background-color: var(--primary-dark);
-}
-.wrapper div:first-child{
-    text-align: center;
+    margin-left: 330px;
 }

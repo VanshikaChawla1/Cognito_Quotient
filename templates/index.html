@@ -29,15 +29,17 @@
                     <select name="sources" id="sources" class="custom-select">
                     </select>
                 </div>
-                <button class="play" title="Play-Stop"><i data-feather="play"></i></button>
-                <button class="btn screenshot d-none" title="ScreenShot"><i data-feather="image" id="startButton"></i></button>
-                <button class="btn screenshot d-none" title="ScreenShot"><i data-feather="image" id="stopButton"></i></button>
+                <button class="play" title="Video"><i data-feather="video"></i></button>
+                <button class="btn screenshot d-none" title="Start Recording"><i data-feather="play" id="startButton"></i></button>
+                <button class="btn screenshot d-none" title="Stop Recording"><i data-feather="square" id="stopButton"></i></button>
             </div>
+            <div id="recordingStatus" class="recording-status"></div>
+
         </div>
 
-        <h2>Search results</h2>
+        <h2>Rsults</h2>
         <div id="results">
-            Try to Search Something
+            Record your Video
         </div>
     </div>
     <script src="https://unpkg.com/feather-icons"></script>

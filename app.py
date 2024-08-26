@@ -59,7 +59,7 @@ def empty_folder(folder_path):
 
 
 
-def analyze_sentiment(audio_file):   
+def analyze_sentiment(audio_file):  
     recognizer = sr.Recognizer()
 
     with sr.AudioFile(audio_file) as source:
