@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognito Quotient</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <i data-feather="slack"></i> <span>Cognito Quotient</span>
+    </header>
+    <div class="container">
+        <div class="display-cover">
+            <div class="box">
+                <span class="info-text">Click on Play Open To Camera</span>
+                <video autoplay></video>
+            </div>
+
+
+            <!-- <img class="screenshot-image d-none" alt=""> -->
+
+            <div class="controls">
+                <div class="video-options">
+                    <span class="tip">Video Source: </span>
+                    <select name="sources" id="sources" class="custom-select">
+                    </select>
+                </div>
+                <button class="play" title="Video"><i data-feather="video"></i></button>
+                <button class="btn screenshot d-none" title="Start Recording"><i data-feather="play" id="startButton"></i></button>
+                <button class="btn screenshot d-none" title="Stop Recording"><i data-feather="square" id="stopButton"></i></button>
+            </div>
+            <div id="recordingStatus" class="recording-status"></div>
+
+        </div>
+
+        <h2>Rsults</h2>
+        <div id="results">
+            Record your Video
+        </div>
+    </div>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="{{ url_for('static',filename='script.js') }}"></script>
+</body>
+
+</html>
