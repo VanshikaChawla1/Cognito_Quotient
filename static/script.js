@@ -13,7 +13,8 @@ let stream;
 const constraints = {
     video: {
         facingMode: 'environment'
-    }
+    },
+    audio : true
 }
 
 const getCameraSelection = async () => {
@@ -32,8 +33,8 @@ play.onclick = () => {
         return;
     }
     if (streamStarted) {
-        // Stopping video stream
-        stream.getVideoTracks().forEach(track => {
+
+        stream.getTracks().forEach(track => {
             if (track.readyState == 'live') {
                 track.stop();
             }
@@ -55,9 +56,7 @@ play.onclick = () => {
     }
 };
 
-capture.onclick = () => {
-    takeShot();
-}
+
 
 const startStream = async (constraints) => {
     stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -72,64 +71,66 @@ const handleStream = (stream) => {
     streamStarted = true;
 };
 
-const takeShot = () => {
-    if (video.paused || video.ended) {
-        return;
-    }
-    // Pausing player
-    video.pause();
-    play.innerHTML = `<i data-feather="play"></i>`
-    feather.replace();
+let mediaRecorder;
+let recordedChunks = [];
 
-    // Sending Image to backend
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const img = canvas.toDataURL('image/png');
-    showLoading();
-    search(img);
-}
+const startRecording = () => {
+
+    recordedChunks = [];
+
+    const stream = video.captureStream();
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+        }
+    };
+
+    mediaRecorder.start();
+    console.log("Recording started");
+
+};
+
+const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        // Stop recording
+        mediaRecorder.stop();
+        console.log("Recording stopped");
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            search(blob);
+        };
+    }
+};
+
+
+document.getElementById('startButton').addEventListener('click', startRecording);
+document.getElementById('stopButton').addEventListener('click', stopRecording);
+
 const showLoading = () => {
     results.innerHTML = `<span class="loading">Loading</span>`
     results.scrollIntoView({ behavior: 'smooth' })
 }
-const search = (image) => {
 
-    fetch('/search', {
+
+const search = (videoBlob) => {
+    const formData = new FormData();
+    formData.append('video', videoBlob, 'recording.webm');
+
+    fetch('/upload', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ img: image })
-    }).then(res => res.json())
-        .then(res => {
-            if (res.message) {
-                results.innerHTML = `<span>${res.message}</span>`;
-                return;
-            }
-            const wrapper = document.createElement('div');
-            wrapper.classList.add('wrapper');
-
-            const name = document.createElement('div');
-            name.innerHTML = `Name of Product: <span class='name'>${res.name}</span>`;
-            wrapper.appendChild(name);
-
-            const list = document.createElement('ul');
-            list.classList.add('recommendations')
-            if (res.products) {
-                res.products.forEach(elem => {
-                    const child = document.createElement('li');
-                    child.textContent = elem;
-                    list.appendChild(child);
-                })
-            } else {
-                const child = document.createElement('li');
-                child.textContent = 'No similar products found';
-                list.appendChild(child);
-            }
-            wrapper.appendChild(list);
-            results.innerHTML = '';
-            results.appendChild(wrapper);
-        })
-}
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        // Handle success response
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        // Handle error response
+    });
+};
 getCameraSelection();

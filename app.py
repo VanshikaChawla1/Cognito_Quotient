@@ -6,24 +6,30 @@ from roboflow import Roboflow
 import shutil
 from collections import Counter
 import nltk
+nltk.download('vader_lexicon')
 import speech_recognition as sr
 from nltk.sentiment import SentimentIntensityAnalyzer
 from moviepy.editor import VideoFileClip
+import subprocess
+from inference_sdk import InferenceHTTPClient
 
 
 
-rf = Roboflow(api_key="LF4lxbBefvMh8W3awrgv")
+CLIENT = InferenceHTTPClient(
+    api_url="https://detect.roboflow.com",
+    api_key="LF4lxbBefvMh8W3awrgv"
+)
 
-project_f = rf.workspace().project("face-emotion-s9kw9")
-model_f = project_f.version(1).model
+# project_f = rf.workspace().project("face-emotion-s9kw9")
+# model_f = project_f.version()
 
-project_d = rf.workspace().project("dress-model-gknib")
-model_d = project_d.version(1).model
+# project_d = rf.workspace().project("dress-model-gknib")
+# model_d = project_d.version("1").model
 
 def save_frames_as_images(video_file):
     cap = cv2.VideoCapture(video_file)
     frame_total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    step = int(0.1 * frame_total)
+    step = int(0.5 * frame_total)
     image_fol = "images"
     if not os.path.exists(image_fol):
         os.makedirs(image_fol)
@@ -49,19 +55,7 @@ def empty_folder(folder_path):
     else:
         print(f'The folder {folder_path} does not exist or is not a directory.')
 
-def highest_confidence_class(predictions):
-    max_confidence = float('-inf')
-    max_class = None
-    
-    for prediction in predictions:
-        if 'predictions' in prediction:
-            for class_name, data in prediction['predictions'].items():
-                confidence = data.get('confidence', 0)
-                if confidence > max_confidence:
-                    max_confidence = confidence
-                    max_class = class_name
 
-    return max_class
 
 
 
@@ -110,13 +104,17 @@ def get_best(model, video):
     for filename in os.listdir(image_folder):
         if filename.endswith(".jpg"):
             image_path = os.path.join(image_folder, filename)
-            predictions = model.predict(image_path).json()['predictions']
-            result = highest_confidence_class(predictions)
-            result_list.append(result)
+            predictions = CLIENT.infer(image_path, model)
+            print(predictions)
+            result = predictions['predicted_classes']
+            result_list.extend(result)
     
     return Counter(result_list).most_common(1)[0][0]
     
-    return max_class
+def reencode_video(input_path, output_path):
+    command = ['ffmpeg', '-i', input_path, '-c:v', 'libx264', '-c:a', 'aac', output_path]
+    subprocess.run(command, check=True)
+
 app = Flask(__name__)
 app=Flask(__name__)
 CORS(app, resources={r"/": {"origins": ""}})
@@ -126,9 +124,6 @@ def home():
     return render_template('index.html')
 
 
-# @app.route('/')
-# def home():
-#   return jsonify({"hello":"world"})
 
 @app.route('/upload',methods=['POST'])
 def upload():
@@ -139,18 +134,24 @@ def upload():
     if vid.filename == '':
         return jsonify({"error": "a error occured"})
 
-    vid.save('temp.mp4')
-    vid_path='temp.mp4'
+    vid.save('images/temp.mp4')
+    vid_path='images/temp.mp4'
 
-    vidf=VideoFileClip(vid_path)
+    reencoded_path = 'images/reencoded_video.mp4'
+    reencode_video(vid_path, reencoded_path)
+    try:
+        vidf=VideoFileClip(reencoded_path)
+    except OSError as e:
+        return jsonify({"error": str(e)})
+    
     aud=vidf.audio
 
-    aud.write_audiofile('temp.wav')
-    audf='temp.wav'
+    aud.write_audiofile('images/temp.wav')
+    audf='images/temp.wav'
 
 
-    emotion=get_best(model_f,vid_path)[1::]
-    dress_code=get_best(model_d,vid_path)
+    emotion=get_best("face-emotion-s9kw9/1",reencoded_path)[1::]
+    dress_code=get_best("dress-model-gknib/1",reencoded_path)
     try:
         sentiment=analyze_sentiment(audf)
     except(sr.UnknownValueError):
@@ -164,11 +165,13 @@ def upload():
         dress="Informal"
 
   empty_folder("images")
+
   
   return jsonify({"Emotion":emotion,
                   "Dress":dress,
                   "Sentiment":sentiment,
                   "Stutter":stutter})
 
-if __name__=='main_':
+if __name__=='__main__':
+  empty_folder("images")
   app.run(debug=True)
